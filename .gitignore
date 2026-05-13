@@ -6,3 +6,7 @@ dist/
 *.mp4
 *.exe
 .env
+/269eab97-40dd-478c-9e62-25bee1094335.txt
+
+# Canva-token-bearing scratch files (auto-added by gh-autosync)
+*-*-*-*-*.txt

@@ -1,0 +1,45 @@
+I built a Hudl Video Downloader — CLI + GUI tool that downloads any Hudl video in one command.
+
+python hudl_dl.py "https://fan.hudl.com/.../watch?b=..."
+
+That's it. MP4 saved. Any quality. Any Hudl URL type.
+
+Here's what's under the hood:
+
+URL Input -> Auto-Detect URL Type -> Extract m3u8 -> Parse Quality Variants -> FFmpeg HLS Download -> MP4
+
+The hard part was URL extraction. Hudl has 4 different URL formats:
+
+-- Direct m3u8 links (from DevTools)
+-- Fan page URLs (fan.hudl.com — requires GraphQL API + base64 decode + VMAP)
+-- vCloud broadcast embeds
+-- Generic hudl.com pages (HTML scraping fallback)
+
+One extractor handles all of them. You just paste the URL.
+
+Features:
+-- Quality selection: best, 1080p, 720p, 540p, worst
+-- Master m3u8 parsing with HEVC/H.264 codec detection
+-- Batch mode: paste 50 URLs, set workers to 3, walk away
+-- URL import from .txt, .csv, .xlsx files
+-- Real-time progress bar: percent, speed, ETA, file size
+-- Dark-themed GUI (tkinter) for non-technical users
+-- PyInstaller-ready: ships as a single .exe
+-- Cancel support: clean abort, removes partial files
+
+Architecture:
+  hudl_dl.py     -> CLI entry point + orchestrator
+  extractor.py   -> Multi-format URL extraction engine
+  quality.py     -> m3u8 parser + quality selector
+  downloader.py  -> FFmpeg HLS download + progress tracking
+  batch.py       -> Concurrent batch manager (ThreadPoolExecutor)
+  gui.py         -> tkinter dark-theme GUI
+  utils.py       -> FFmpeg finder, sanitizers, file readers
+
+7 files. 1,963 lines. Clean module separation.
+
+Tech: Python, FFmpeg, HLS/m3u8, GraphQL, tkinter, PyInstaller
+
+GitHub: https://github.com/PyotrMuhammad/Hudl-Downloader
+
+#Python #VideoDownloader #HLS #FFmpeg #OpenSource #Automation #GUI

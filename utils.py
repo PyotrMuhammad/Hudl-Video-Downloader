@@ -160,16 +160,20 @@ def read_urls_from_file(filepath: str) -> list:
 
 
 def _extract_url_from_text(text: str) -> str:
-    """Extract a Hudl/m3u8 URL from a text string. Returns URL or empty string."""
+    """Extract a supported platform URL from a text string. Returns URL or empty string."""
     text = text.strip()
+    _DOMAINS = ("hudl", "m3u8", "blueframe", "veo.co", "youtube.com", "youtu.be",
+                "traceup.com", "tracevision.com", "pixellot")
     # If the whole string is a URL
     if text.startswith("http://") or text.startswith("https://"):
-        if "hudl" in text or "m3u8" in text or "blueframe" in text:
+        if any(d in text for d in _DOMAINS):
             return text
     # Try to find a URL inside the text
-    match = re.search(r'(https?://[^\s<>"\']+(?:hudl|m3u8|blueframe)[^\s<>"\']*)', text)
+    match = re.search(r'(https?://[^\s<>"\']+)', text)
     if match:
-        return match.group(1)
+        url = match.group(1)
+        if any(d in url for d in _DOMAINS):
+            return url
     return ""
 
 

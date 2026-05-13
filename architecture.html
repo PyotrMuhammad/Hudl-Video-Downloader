@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200, initial-scale=1">
+<title>Hudl Downloader - Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    min-height: 630px;
+    background: #0a0a0f;
+    font-family: 'Inter', sans-serif;
+    color: #e0e0e0;
+    overflow: hidden;
+  }
+
+  .card {
+    width: 1200px;
+    min-height: 630px;
+    background: linear-gradient(145deg, #0a100d 0%, #0a0a14 40%, #0d100a 100%);
+    position: relative;
+    padding: 44px 52px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .glow-1 {
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(34,197,94,0.12), transparent 70%);
+    top: -80px; right: 120px;
+    border-radius: 50%;
+  }
+  .glow-2 {
+    position: absolute;
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(250,204,21,0.08), transparent 70%);
+    bottom: -60px; left: 80px;
+    border-radius: 50%;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-icon {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 900;
+    color: white;
+    box-shadow: 0 0 22px rgba(34,197,94,0.3);
+  }
+
+  .title-block h1 {
+    font-size: 27px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #e0ffe0, #22c55e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .title-block .sub {
+    font-size: 12px;
+    color: #8b9b80;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .badge {
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.25);
+    color: #86efac;
+    padding: 5px 14px;
+    border-radius: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .badge.gui {
+    background: rgba(250,204,21,0.1);
+    border-color: rgba(250,204,21,0.25);
+    color: #fde68a;
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 22px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .pipe-step {
+    flex: 1;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 11px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .pipe-step .step-num {
+    font-size: 9px;
+    font-weight: 700;
+    color: #22c55e;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+
+  .pipe-step .step-icon { font-size: 20px; margin-bottom: 5px; }
+
+  .pipe-step .step-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f0fff0;
+    margin-bottom: 2px;
+  }
+
+  .pipe-step .step-desc {
+    font-size: 9px;
+    color: #6a7a60;
+    line-height: 1.3;
+  }
+
+  .pipe-arrow {
+    font-size: 16px;
+    color: #22c55e;
+    flex-shrink: 0;
+  }
+
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .mod {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 9px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .mod .mod-file {
+    font-size: 10px;
+    font-weight: 700;
+    color: #22c55e;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 4px;
+  }
+
+  .mod .mod-role {
+    font-size: 9px;
+    color: #8a9a80;
+    line-height: 1.3;
+  }
+
+  .url-types {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .url-type {
+    flex: 1;
+    background: rgba(34,197,94,0.04);
+    border: 1px solid rgba(34,197,94,0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .url-type .ut-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #86efac;
+    margin-bottom: 3px;
+  }
+
+  .url-type .ut-desc {
+    font-size: 9px;
+    color: #5a6a50;
+    line-height: 1.3;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .feat {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 9px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .feat .feat-icon { font-size: 18px; flex-shrink: 0; }
+
+  .feat .feat-text .feat-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #e0f0e0;
+  }
+
+  .feat .feat-text .feat-desc {
+    font-size: 9px;
+    color: #5a6a50;
+  }
+
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .tech-row {
+    display: flex;
+    gap: 7px;
+  }
+
+  .tech-tag {
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.18);
+    color: #86efac;
+    padding: 4px 11px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stats {
+    display: flex;
+    gap: 24px;
+  }
+
+  .stat { text-align: right; }
+
+  .stat .num {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stat .label {
+    font-size: 9px;
+    color: #5a6a50;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">H</div>
+      <div class="title-block">
+        <h1>Hudl Video Downloader</h1>
+        <div class="sub">Download any Hudl video by URL. CLI + GUI. One command.</div>
+      </div>
+    </div>
+    <div class="badges">
+      <div class="badge">CLI</div>
+      <div class="badge gui">GUI</div>
+      <div class="badge">OPEN SOURCE</div>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="step-num">STEP 01</div>
+      <div class="step-icon">&#x1F517;</div>
+      <div class="step-title">URL Input</div>
+      <div class="step-desc">Paste URL, load .txt/.csv/.xlsx</div>
+    </div>
+    <div class="pipe-arrow">&#x2192;</div>
+    <div class="pipe-step">
+      <div class="step-num">STEP 02</div>
+      <div class="step-icon">&#x1F50D;</div>
+      <div class="step-title">Auto-Detect</div>
+      <div class="step-desc">m3u8, fan page, vCloud, embed</div>
+    </div>
+    <div class="pipe-arrow">&#x2192;</div>
+    <div class="pipe-step">
+      <div class="step-num">STEP 03</div>
+      <div class="step-icon">&#x1F4E1;</div>
+      <div class="step-title">Extract m3u8</div>
+      <div class="step-desc">GraphQL, VMAP, HTML scrape</div>
+    </div>
+    <div class="pipe-arrow">&#x2192;</div>
+    <div class="pipe-step">
+      <div class="step-num">STEP 04</div>
+      <div class="step-icon">&#x1F3AF;</div>
+      <div class="step-title">Quality Select</div>
+      <div class="step-desc">Parse variants, HEVC/H.264</div>
+    </div>
+    <div class="pipe-arrow">&#x2192;</div>
+    <div class="pipe-step">
+      <div class="step-num">STEP 05</div>
+      <div class="step-icon">&#x2B07;</div>
+      <div class="step-title">FFmpeg Download</div>
+      <div class="step-desc">HLS stream copy to MP4</div>
+    </div>
+    <div class="pipe-arrow">&#x2192;</div>
+    <div class="pipe-step">
+      <div class="step-num">OUTPUT</div>
+      <div class="step-icon">&#x1F3AC;</div>
+      <div class="step-title">MP4 Video</div>
+      <div class="step-desc">+faststart, progress bar</div>
+    </div>
+  </div>
+
+  <div class="modules">
+    <div class="mod">
+      <div class="mod-file">hudl_dl.py</div>
+      <div class="mod-role">CLI entry point & orchestrator</div>
+    </div>
+    <div class="mod">
+      <div class="mod-file">extractor.py</div>
+      <div class="mod-role">Multi-format URL extraction</div>
+    </div>
+    <div class="mod">
+      <div class="mod-file">quality.py</div>
+      <div class="mod-role">m3u8 parser & quality selector</div>
+    </div>
+    <div class="mod">
+      <div class="mod-file">downloader.py</div>
+      <div class="mod-role">FFmpeg HLS + progress tracking</div>
+    </div>
+    <div class="mod">
+      <div class="mod-file">batch.py</div>
+      <div class="mod-role">Concurrent batch manager</div>
+    </div>
+    <div class="mod">
+      <div class="mod-file">gui.py</div>
+      <div class="mod-role">Dark tkinter GUI interface</div>
+    </div>
+    <div class="mod">
+      <div class="mod-file">utils.py</div>
+      <div class="mod-role">FFmpeg finder, sanitizers</div>
+    </div>
+  </div>
+
+  <div class="url-types">
+    <div class="url-type">
+      <div class="ut-title">Direct m3u8</div>
+      <div class="ut-desc">va.hudl.com / vi.hudl.com -- paste from DevTools Network tab</div>
+    </div>
+    <div class="url-type">
+      <div class="ut-title">Fan Page</div>
+      <div class="ut-desc">fan.hudl.com/watch -- GraphQL + base64 decode + VMAP API</div>
+    </div>
+    <div class="url-type">
+      <div class="ut-title">vCloud Embed</div>
+      <div class="ut-desc">vcloud.hudl.com/broadcast -- VMAP extraction + fallback scrape</div>
+    </div>
+    <div class="url-type">
+      <div class="ut-title">Generic Page</div>
+      <div class="ut-desc">Any hudl.com page -- HTML/JS scraping with m3u8 regex scan</div>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feat">
+      <div class="feat-icon">&#x1F3AF;</div>
+      <div class="feat-text">
+        <div class="feat-title">Quality Selection</div>
+        <div class="feat-desc">best / 1080p / 720p / 540p / worst</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x26A1;</div>
+      <div class="feat-text">
+        <div class="feat-title">Batch Mode</div>
+        <div class="feat-desc">Concurrent workers, file import</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x1F4CA;</div>
+      <div class="feat-text">
+        <div class="feat-title">Live Progress</div>
+        <div class="feat-desc">%, speed, ETA, file size</div>
+      </div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x1F4E6;</div>
+      <div class="feat-text">
+        <div class="feat-title">Ships as .exe</div>
+        <div class="feat-desc">PyInstaller single binary</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="tech-row">
+      <span class="tech-tag">Python</span>
+      <span class="tech-tag">FFmpeg</span>
+      <span class="tech-tag">HLS/m3u8</span>
+      <span class="tech-tag">GraphQL</span>
+      <span class="tech-tag">tkinter</span>
+      <span class="tech-tag">PyInstaller</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="num">7</div>
+        <div class="label">MODULES</div>
+      </div>
+      <div class="stat">
+        <div class="num">1,963</div>
+        <div class="label">LINES OF CODE</div>
+      </div>
+      <div class="stat">
+        <div class="num">4</div>
+        <div class="label">URL TYPES</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
